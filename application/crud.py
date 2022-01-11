@@ -2,6 +2,8 @@ from fastapi import HTTPException, status, Response
 from sqlalchemy.orm import Session
 from typing import Optional
 
+from sqlalchemy.sql.functions import mode
+
 from . import models, schemas
 
 
@@ -17,10 +19,18 @@ def get_application(db: Session, id: int):
     return db.query(models.Application).filter(models.Application.id == id).first()
 
 
-def get_applications(db: Session, page: int):
-    if not page:
-        return db.query(models.Application).offset(0).limit(25).all()
-    return db.query(models.Application).offset((page - 1) * 25).limit(25).all()
+def get_applications(db: Session, state: schemas.StateEnum, page: int):
+    offset = 0
+    limit = 25
+
+    if page:
+        offset = (page - 1) * 25
+
+    if not state:
+        return db.query(models.Application).offset(offset).limit(limit).all()
+    else:
+        return db.query(models.Application).filter(models.Application.state == state)\
+               .offset(offset).limit(limit).all()
 
 
 def update_application(db: Session, id: int, request: schemas.ApplicationUpdate):

@@ -38,8 +38,8 @@ def get_application(id: int, db: Session=Depends(get_db)):
 
 
 @app.get('/application', response_model=List[schemas.Application])
-def get_applications(page: Optional[int] = None, db: Session=Depends(get_db)):
-    return crud.get_applications(db, page)
+def get_applications(state: Optional[schemas.StateEnum] = None, page: Optional[int] = None, db: Session=Depends(get_db)):
+    return crud.get_applications(db, state, page)
 
 
 @app.put('/application/{id}', status_code=status.HTTP_202_ACCEPTED)
