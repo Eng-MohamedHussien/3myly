@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import FastAPI, status, Depends, HTTPException, Response, Query
+from fastapi import FastAPI, status, Depends, HTTPException, Response, Query, File, UploadFile
 from sqlalchemy.orm import Session
 import uvicorn
 
@@ -25,6 +25,12 @@ def add_application(application: schemas.ApplicationBase, db: Session=Depends(ge
     
     crud.create_application(db, application)
     return {'status': 'Application has been added successfully'}
+
+
+@app.post('/upload', status_code=status.HTTP_201_CREATED)
+def upload_excel_sheet(file: UploadFile = File(...), db: Session=Depends(get_db)):
+    crud.add_data_from_excel(db, file)
+    return {'status': f"{file.filename} has been uploaded successfully"}
 
 
 @app.get('/application/{id}', response_model=schemas.Application)

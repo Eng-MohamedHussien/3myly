@@ -1,10 +1,10 @@
-from fastapi import HTTPException, status, Response
+from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
-from typing import Optional
 
-from sqlalchemy.sql.functions import mode
+import pandas as pd
 
 from . import models, schemas
+import application
 
 
 def create_application(db: Session, application: schemas.ApplicationBase):
@@ -13,6 +13,22 @@ def create_application(db: Session, application: schemas.ApplicationBase):
     db.add(application)
     db.commit()
     db.refresh(application)
+
+
+def add_data_from_excel(db: Session, file: UploadFile):
+    bytes = file.file.read()
+    df = pd.read_excel(bytes)
+    # remove row that has empty column
+    df = df.dropna()
+
+    applications = []
+    for _, row in df.iterrows():
+        applications.append(models.Application(client_name  = row['Applicant Name'], 
+                                               client_phone = row['Mobile Phone'], 
+                                               product_type = row['Requested Product Type']))
+    
+    db.add_all(applications)
+    db.commit()
 
 
 def get_application(db: Session, id: int):
